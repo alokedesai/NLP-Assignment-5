@@ -167,7 +167,6 @@ public class WordSim {
 			Double idf = Math.log10(n /docFrequency.get(s));
 			output.put(s, h.get(s) * idf);
 		}
-		System.out.println(output);
 		return output;
 	}
 	
@@ -264,7 +263,6 @@ public class WordSim {
 				if (weighting.equals("TF")) {
 					currentVector = tfWeight(currentVector);
 				} else if (weighting.equals("TFIDF")) {
-					System.out.println("word: " + s);
 					currentVector = tfIdfWeight(currentVector);
 				} else if (weighting.equals("PMI")) {
 					// handle case 
@@ -282,8 +280,6 @@ public class WordSim {
 				} else if (simMeasure.equals("EUCLIDEAN")) {
 					distance = l2Distance(currentVector, vector);
 				} else if (simMeasure.equals("COSINE")) {
-					System.out.println("current vector : " + currentVector);
-					System.out.println("vector: " + vector);
 					distance = cosineDistance(currentVector, vector);
 				} else {
 					return "ERROR";
@@ -313,7 +309,7 @@ public class WordSim {
 		return output.toString();
 	}
 	public static void main(String[] args) {
-		WordSim test = new WordSim("stoplist", "test.sentences","test");		
-		System.out.println(test.calculateTopWeights("b", "TFIDF", "COSINE"));
+		WordSim test = new WordSim("stoplist", "sentences","test");		
+		System.out.println(test.calculateTopWeights("dog", "TFIDF", "EUCLIDEAN"));
 	}
 }
