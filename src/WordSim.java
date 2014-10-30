@@ -87,25 +87,26 @@ public class WordSim {
 		System.out.println(frequency.size() + " unique words");
 		System.out.println(wordCount + " word occurrences");
 		System.out.println(numDocuments + " sentences/lines/documents");
+		System.out.println();
 
 		// calculate weights for each line in input file
-//		File input = new File(inputFile);
-//		Scanner inputScanner;
-//
-//		try {
-//			inputScanner = new Scanner(input);
-//			
-//			while (inputScanner.hasNextLine()) {
-//				String currentLine = inputScanner.nextLine();
-//				String[] params = currentLine.split("\t");
-//				System.out.println(params[2]);
-//				System.out.println(calculateTopWeights(params[0], params[1], params[2]));
-//			}
-//			
-//		} catch (FileNotFoundException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
+		File input = new File(inputFile);
+		Scanner inputScanner;
+
+		try {
+			inputScanner = new Scanner(input);
+			
+			while (inputScanner.hasNextLine()) {
+				String currentLine = inputScanner.nextLine();
+				String[] params = currentLine.split("\t");
+				System.out.println("SIM: " + currentLine);
+				System.out.println(calculateTopWeights(params[0], params[1], params[2]));
+			}
+			
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	private void addToOccurrence(int i, ArrayList<String> sentences) {
@@ -164,7 +165,7 @@ public class WordSim {
 		double n = (double) numDocuments;
 		Hashtable<String, Double> output = new Hashtable<String, Double>();
 		for (String s : h.keySet()) {
-			Double idf = Math.log10(n /docFrequency.get(s));
+			Double idf = Math.log10(n /(double) docFrequency.get(s));
 			output.put(s, h.get(s) * idf);
 		}
 		return output;
@@ -296,20 +297,19 @@ public class WordSim {
 				if (i >= similarities.size()) {
 					break;
 				}
-				output.append(similarities.get(i) + " ");
+				output.append(similarities.get(i).word + "\t" + similarities.get(i).weight + "\n");
 			}
 		} else {
 			for (int i =  similarities.size() - 1; i >= similarities.size() - 10; i--) {
 				if (i < 0) {
 					break;
 				}
-				output.append(similarities.get(i) + " ");
+				output.append(similarities.get(i).word + "\t" + similarities.get(i).weight + "\n");
 			}
 		}
 		return output.toString();
 	}
 	public static void main(String[] args) {
-		WordSim test = new WordSim("stoplist", "sentences","test");		
-		System.out.println(test.calculateTopWeights("dog", "PMI", "COSINE"));
+		WordSim test = new WordSim("stoplist", "sentences", "test");
 	}
 }
