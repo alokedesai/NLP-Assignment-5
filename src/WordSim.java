@@ -12,9 +12,6 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Scanner;
 
-import com.sun.org.apache.bcel.internal.generic.L2D;
-
-
 public class WordSim {
 	// frequency of a given word in all the documents
 	private Hashtable<String, Integer> frequency = new Hashtable<String, Integer>();
