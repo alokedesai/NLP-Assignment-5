@@ -39,14 +39,14 @@ public class WordSim {
 				
 				numDocuments += 1;
 				String currentSentence = sentenceScanner.nextLine();
-				System.out.println(currentSentence);
 				String[] sentence = currentSentence.split(" ");
 				ArrayList<String> prunedSentence = new ArrayList<String>();
 
 				for (String word: sentence) {
-					wordCount += 1;
+					
 					String currentWord = word.toLowerCase();
 					if (!stopWords.contains(currentWord) && currentWord.matches("[a-z]+")) {
+						wordCount += 1;
 						prunedSentence.add(currentWord);
 					}
 				}
@@ -83,7 +83,6 @@ public class WordSim {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
 		//print statistics
 		System.out.println(frequency.size() + " unique words");
 		System.out.println(wordCount + " word occurrences");
@@ -92,14 +91,15 @@ public class WordSim {
 		// calculate weights for each line in input file
 //		File input = new File(inputFile);
 //		Scanner inputScanner;
-
+//
 //		try {
 //			inputScanner = new Scanner(input);
 //			
 //			while (inputScanner.hasNextLine()) {
 //				String currentLine = inputScanner.nextLine();
-//				String[] params = currentLine.split(" ");
-//				
+//				String[] params = currentLine.split("\t");
+//				System.out.println(params[2]);
+//				System.out.println(calculateTopWeights(params[0], params[1], params[2]));
 //			}
 //			
 //		} catch (FileNotFoundException e) {
@@ -112,20 +112,23 @@ public class WordSim {
 		String word = sentences.get(i);
 		// left
 		if (i == 1) {
+			
 			addToHash(word, sentences.get(0));
 		} else if (i > 1) {
+			
 			addToHash(word, sentences.get(i-1));
-			addToHash(word, sentences.get(i-1));
+			addToHash(word, sentences.get(i-2));
 		}
 		
 		if (i == sentences.size() - 2) {
+			
 			addToHash(word, sentences.get(i+1));
 		} else if (i < sentences.size() - 2){
+			
 			addToHash(word,sentences.get(i+1));
 			addToHash(word, sentences.get(i+2));
 		}
 	}
-	
 	private void addToHash(String word, String occurrence) {
 		if (!occurrences.containsKey(word)) {
 			occurrences.put(word, new Hashtable<String, Double>());
@@ -138,7 +141,7 @@ public class WordSim {
 	}
 	
 	public Hashtable<String, Double> normalize(Hashtable<String, Double> h) {
-		double norm = 0;
+		double norm = 0.0;
 		for (String s : h.keySet()) {
 			norm += Math.pow( h.get(s), 2);
 		}
@@ -148,7 +151,8 @@ public class WordSim {
 		for (String s: h.keySet()) {
 			output.put(s, (h.get(s)) / norm);
 		}
-		return output;
+
+		return output ;
 		
 	}
 	
@@ -163,25 +167,20 @@ public class WordSim {
 			Double idf = Math.log10(n /docFrequency.get(s));
 			output.put(s, h.get(s) * idf);
 		}
+		System.out.println(output);
 		return output;
 	}
 	
 	public Hashtable<String, Double> pmiWeight(Hashtable<String, Double> h, String word) {
-		double numWords = (double) occurrences.size();
-		Double feature = frequency.get(word) / (double) numWords;
 		Hashtable<String, Double> output = new Hashtable<String, Double>();
-
-		for (String s : h.keySet()) {
-			Double numerator;
-			if (occurrences.get(s).containsKey(word)) {
-				numerator = occurrences.get(s).get(word);
-			} else {
-				numerator = 0.0;
-			}
-			Double prob = frequency.get(word) / (double) numWords;
-			Double weight = numerator / (prob * feature);
-			output.put(s, weight);
+		double probWord = frequency.get(word) / (double) wordCount;
+		for (String key : h.keySet()) {
+			double numerator = occurrences.get(word).get(key) / (double) wordCount;
+			double probKey = frequency.get(key) / (double) wordCount;
+			double weight = Math.log10(numerator / (probKey * probWord));
+			output.put(key, weight);
 		}
+		
 		return output;
 	}
 	
@@ -211,13 +210,13 @@ public class WordSim {
 			if (vector2.containsKey(word)) {
 				distance += Math.abs((vector1.get(word) - vector2.get(word)));
 			} else {
-				distance += Math.abs(vector1.get(word));
+				distance += vector1.get(word);
 			}
 		}
 
 		for (String word: vector2.keySet()) {
 			if (!vector1.containsKey(word)) {
-				distance += Math.abs(vector2.get(word));
+				distance += vector2.get(word);
 			}
 		}
 		return distance;
@@ -225,6 +224,7 @@ public class WordSim {
 	
 	public Double cosineDistance(Hashtable<String, Double> vector1, Hashtable<String, Double> vector2) {
 		Double distance = 0.0;
+
 		for (String word: vector1.keySet()) {
 			if (vector2.containsKey(word)) {
 				distance += vector1.get(word) * vector2.get(word);
@@ -232,32 +232,21 @@ public class WordSim {
 		}
 		return distance;
 	}
-
-//	public void similarWords(String word, String weighting, String simMeasure) {
-//		ArrayList<WordWeight> similarities = new ArrayList<WordWeight>();
-//		
-//		Hashtable<String, Double> queryVector = 
-//		for (String s : frequency.keySet()) {
-//			if (frequency.get(s) >= 3 && !s.equals(word)) {
-//				Hashtable<String, Double> vector1 = 
-//				Double weight = l2Distance(normalize(tfIdfWeight(occurrences.get(word))),normalize(tfIdfWeight(occurrences.get(s))));
-//				similarities.add(new WordWeight(s,weight));
-//			}
-//		}
-//		Collections.sort(similarities);
-//		System.out.println(similarities);
-//	}
 	
 	public String calculateTopWeights(String word, String weighting, String simMeasure) {
+		if (!occurrences.containsKey(word)) {
+			return "ERROR";
+		}
 		Hashtable<String, Double> vector = occurrences.get(word);
 		
 		// weight vector
 		if (weighting.equals("TF")) {
 			vector = tfWeight(vector);
 		} else if (weighting.equals("TFIDF")) {
+			System.out.println("word: " + word);
 			vector = tfIdfWeight(vector);
 		} else if (weighting.equals("PMI")) {
-			// handle case 
+			vector = pmiWeight(vector, word);
 		} else {
 			return "ERROR";
 		}
@@ -270,10 +259,12 @@ public class WordSim {
 		for (String s : frequency.keySet()) {
 			if (frequency.get(s) >= 3 && !s.equals(word)) {
 				Hashtable<String, Double> currentVector = occurrences.get(s);
+
 				// weight vector
 				if (weighting.equals("TF")) {
 					currentVector = tfWeight(currentVector);
 				} else if (weighting.equals("TFIDF")) {
+					System.out.println("word: " + s);
 					currentVector = tfIdfWeight(currentVector);
 				} else if (weighting.equals("PMI")) {
 					// handle case 
@@ -291,6 +282,8 @@ public class WordSim {
 				} else if (simMeasure.equals("EUCLIDEAN")) {
 					distance = l2Distance(currentVector, vector);
 				} else if (simMeasure.equals("COSINE")) {
+					System.out.println("current vector : " + currentVector);
+					System.out.println("vector: " + vector);
 					distance = cosineDistance(currentVector, vector);
 				} else {
 					return "ERROR";
@@ -300,10 +293,27 @@ public class WordSim {
 			}
 		}
 		Collections.sort(similarities);
-		return similarities.toString();
+
+		StringBuffer output = new StringBuffer();
+		if (simMeasure.equals("L1") || simMeasure.equals("EUCLIDEAN")) {
+			for (int i = 0; i < 10; i++) {
+				if (i >= similarities.size()) {
+					break;
+				}
+				output.append(similarities.get(i) + " ");
+			}
+		} else {
+			for (int i =  similarities.size() - 1; i >= similarities.size() - 10; i--) {
+				if (i < 0) {
+					break;
+				}
+				output.append(similarities.get(i) + " ");
+			}
+		}
+		return output.toString();
 	}
 	public static void main(String[] args) {
-		WordSim test = new WordSim("stoplist", "sentences","s");
-//		System.out.println(test.calculateTopWeights("b", "TFIDF", "EUCLIDEAN"));
+		WordSim test = new WordSim("stoplist", "test.sentences","test");		
+		System.out.println(test.calculateTopWeights("b", "TFIDF", "COSINE"));
 	}
 }
