@@ -242,7 +242,6 @@ public class WordSim {
 		if (weighting.equals("TF")) {
 			vector = tfWeight(vector);
 		} else if (weighting.equals("TFIDF")) {
-			System.out.println("word: " + word);
 			vector = tfIdfWeight(vector);
 		} else if (weighting.equals("PMI")) {
 			vector = pmiWeight(vector, word);
@@ -265,7 +264,8 @@ public class WordSim {
 				} else if (weighting.equals("TFIDF")) {
 					currentVector = tfIdfWeight(currentVector);
 				} else if (weighting.equals("PMI")) {
-					// handle case 
+					// handle case
+					currentVector = pmiWeight(currentVector, s);
 				} else {
 					return "ERROR";
 				}
@@ -310,6 +310,6 @@ public class WordSim {
 	}
 	public static void main(String[] args) {
 		WordSim test = new WordSim("stoplist", "sentences","test");		
-		System.out.println(test.calculateTopWeights("dog", "TFIDF", "EUCLIDEAN"));
+		System.out.println(test.calculateTopWeights("dog", "PMI", "COSINE"));
 	}
 }
